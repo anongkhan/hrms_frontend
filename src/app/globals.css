@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Saysettha OT Lao";
+  src: local("Saysettha OT");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  unicode-range: U+0E80-0EFF;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  /* Dashboard (clean admin UI with stronger contrast and status accents) */
+  --dash-sidebar: #ffffff;
+  --dash-surface: #ffffff;
+  --dash-border: #e2e8f0;
+  --dash-active-bg: #dbeafe;
+  --dash-primary: #2563eb;
+  --dash-primary-hover: #1d4ed8;
+  --dash-pill: #ffffff;
+  --dash-muted: #64748b;
+  --font-saysettha: "Saysettha OT Lao";
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-dash-sidebar: var(--dash-sidebar);
+  --color-dash-surface: var(--dash-surface);
+  --color-dash-border: var(--dash-border);
+  --color-dash-active-bg: var(--dash-active-bg);
+  --color-dash-primary: var(--dash-primary);
+  --color-dash-primary-hover: var(--dash-primary-hover);
+  --color-dash-pill: var(--dash-pill);
+  --color-dash-muted: var(--dash-muted);
+  --font-sans: var(--font-saysettha), var(--font-noto-serif);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-saysettha), var(--font-noto-serif), Arial, Helvetica, sans-serif;
 }
