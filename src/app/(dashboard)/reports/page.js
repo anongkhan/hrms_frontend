@@ -1,23 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Download, FileSpreadsheet, Search, Users, Wallet } from "lucide-react";
-
-const payrollReports = [
-  { id: "PAY-2026-01", period: "2026-01", month: "January", year: "2026", department: "Human Resource", employees: 12, salary: 62400000, allowance: 5200000, deduction: 800000 },
-  { id: "PAY-2026-02", period: "2026-02", month: "February", year: "2026", department: "Accounting", employees: 9, salary: 43800000, allowance: 3600000, deduction: 500000 },
-  { id: "PAY-2026-03", period: "2026-03", month: "March", year: "2026", department: "IT Support", employees: 14, salary: 89400000, allowance: 7800000, deduction: 1200000 },
-  { id: "PAY-2026-04", period: "2026-04", month: "April", year: "2026", department: "Marketing", employees: 8, salary: 37600000, allowance: 2900000, deduction: 400000 },
-  { id: "PAY-2025-12", period: "2025-12", month: "December", year: "2025", department: "Operations", employees: 11, salary: 51700000, allowance: 4300000, deduction: 700000 },
-];
-
-const attendanceReports = [
-  { id: "ATT-001", empId: "EMP-001", name: "Anongkhan Zaiyaphon", department: "Human Resource", period: "2026-06", year: "2026", presentDays: 21, leaveDays: 1, absentDays: 0, lateDays: 2 },
-  { id: "ATT-002", empId: "EMP-002", name: "Somxai PTL", department: "Accounting", period: "2026-06", year: "2026", presentDays: 19, leaveDays: 2, absentDays: 1, lateDays: 0 },
-  { id: "ATT-003", empId: "EMP-003", name: "Sengdavone Dev", department: "IT Support", period: "2026-06", year: "2026", presentDays: 22, leaveDays: 0, absentDays: 0, lateDays: 1 },
-  { id: "ATT-004", empId: "EMP-004", name: "Souphaphone Mit", department: "Marketing", period: "2026-05", year: "2026", presentDays: 18, leaveDays: 3, absentDays: 1, lateDays: 3 },
-  { id: "ATT-005", empId: "EMP-005", name: "Khamla Inthavong", department: "IT Support", period: "2025-12", year: "2025", presentDays: 20, leaveDays: 1, absentDays: 1, lateDays: 1 },
-];
+import { apiRequest } from "@/lib/api";
 
 const reportTypes = [
   { value: "payroll", label: "Monthly & Yearly Expense Report" },
@@ -41,11 +26,14 @@ const monthOptions = [
 
 const yearOptions = ["2026", "2025"];
 
-const formatCurrency = (value) => `${value.toLocaleString()} LAK`;
-
-const getPayrollTotal = (row) => row.salary + row.allowance - row.deduction;
-
+const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} LAK`;
+const getPayrollTotal = (row) => Number(row.total ?? row.salary + row.allowance - row.deduction);
 const csvEscape = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+
+function getMonthLabel(period) {
+  const option = monthOptions.find((month) => month.value === period);
+  return option?.label?.split(" ")[0] || period;
+}
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState("payroll");
@@ -54,20 +42,35 @@ export default function ReportsPage() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [rows, setRows] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadReport() {
+      try {
+        const query = periodType === "month"
+          ? `periodType=month&period=${selectedMonth}`
+          : `periodType=year&year=${selectedYear}`;
+        const data = await apiRequest(`/api/reports/${reportType}?${query}`);
+        setRows(data || []);
+        setError("");
+      } catch (err) {
+        setRows([]);
+        setError(err.message);
+      }
+    }
+
+    loadReport();
+  }, [periodType, reportType, selectedMonth, selectedYear]);
 
   const activeRows = useMemo(() => {
-    const rows = reportType === "payroll" ? payrollReports : attendanceReports;
-    const filteredByPeriod = rows.filter((row) => (
-      periodType === "month" ? row.period === selectedMonth : row.year === selectedYear
-    ));
-
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    if (!normalizedSearch) return filteredByPeriod;
+    if (!normalizedSearch) return rows;
 
-    return filteredByPeriod.filter((row) => (
+    return rows.filter((row) => (
       Object.values(row).join(" ").toLowerCase().includes(normalizedSearch)
     ));
-  }, [periodType, reportType, searchTerm, selectedMonth, selectedYear]);
+  }, [rows, searchTerm]);
 
   const summary = useMemo(() => {
     if (reportType === "payroll") {
@@ -81,9 +84,9 @@ export default function ReportsPage() {
 
     return {
       primaryLabel: "Present Days",
-      primaryValue: activeRows.reduce((sum, row) => sum + row.presentDays, 0),
+      primaryValue: activeRows.reduce((sum, row) => sum + Number(row.presentDays || 0), 0),
       secondaryLabel: "Leave / Absent",
-      secondaryValue: `${activeRows.reduce((sum, row) => sum + row.leaveDays, 0)} / ${activeRows.reduce((sum, row) => sum + row.absentDays, 0)}`,
+      secondaryValue: `${activeRows.reduce((sum, row) => sum + Number(row.leaveDays || 0), 0)} / ${activeRows.reduce((sum, row) => sum + Number(row.absentDays || 0), 0)}`,
     };
   }, [activeRows, reportType]);
 
@@ -97,13 +100,13 @@ export default function ReportsPage() {
       ? ["ID", "Period", "Department", "Employees", "Salary", "Allowance", "Deduction", "Total"]
       : ["ID", "Employee ID", "Name", "Department", "Period", "Present Days", "Leave Days", "Absent Days", "Late Days"];
 
-    const rows = activeRows.map((row) => (
+    const exportRows = activeRows.map((row) => (
       reportType === "payroll"
-        ? [row.id, periodType === "month" ? row.month : row.year, row.department, row.employees, row.salary, row.allowance, row.deduction, getPayrollTotal(row)]
+        ? [row.id, periodType === "month" ? row.period : row.year, row.department, row.employees, row.salary, row.allowance, row.deduction, getPayrollTotal(row)]
         : [row.id, row.empId, row.name, row.department, row.period, row.presentDays, row.leaveDays, row.absentDays, row.lateDays]
     ));
 
-    const csv = [columns, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+    const csv = [columns, ...exportRows].map((row) => row.map(csvEscape).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -129,6 +132,12 @@ export default function ReportsPage() {
           <Download size={17} /> Export File
         </button>
       </div>
+
+      {error && (
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-600">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -222,7 +231,7 @@ export default function ReportsPage() {
       <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
           {reportType === "payroll" ? (
-            <table className="w-full min-w-[920px] border-collapse text-left">
+            <table className="w-full min-w-230 border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <th className="px-6 py-4">Report ID</th>
@@ -236,10 +245,10 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-sm text-slate-600">
-                {activeRows.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-slate-50/50">
+                {activeRows.map((row, index) => (
+                  <tr key={`${row.id}-${index}`} className="transition-colors hover:bg-slate-50/50">
                     <td className="px-6 py-4 font-bold text-blue-600">{row.id}</td>
-                    <td className="px-6 py-4">{periodType === "month" ? row.month : row.year}</td>
+                    <td className="px-6 py-4">{periodType === "month" ? getMonthLabel(row.period) : row.year}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{row.department}</td>
                     <td className="px-6 py-4">{row.employees}</td>
                     <td className="px-6 py-4 font-mono">{formatCurrency(row.salary)}</td>
@@ -256,7 +265,7 @@ export default function ReportsPage() {
               </tbody>
             </table>
           ) : (
-            <table className="w-full min-w-[920px] border-collapse text-left">
+            <table className="w-full min-w-230 border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <th className="px-6 py-4">Employee ID</th>
@@ -270,8 +279,8 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-sm text-slate-600">
-                {activeRows.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-slate-50/50">
+                {activeRows.map((row, index) => (
+                  <tr key={`${row.id}-${index}`} className="transition-colors hover:bg-slate-50/50">
                     <td className="px-6 py-4 font-bold text-blue-600">{row.empId}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{row.name}</td>
                     <td className="px-6 py-4">{row.department}</td>

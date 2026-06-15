@@ -19,9 +19,9 @@ export default function PayrollTable({ payrollData, onPaySalary }) {
           </thead>
           <tbody className="divide-y divide-slate-50 text-sm text-slate-600 font-medium">
             {payrollData.map((row) => {
-              const netSalary = row.basicSalary + row.allowance - row.deduction;
+              const netSalary = row.netSalary ?? row.basicSalary + row.allowance - row.deduction;
               return (
-                <tr key={row.empId} className="hover:bg-slate-50/40 transition-colors">
+                <tr key={row.payrollId || row.empId} className="hover:bg-slate-50/40 transition-colors">
                   {/* ຊື່ ແລະ ຕຳແໜ່ງ */}
                   <td className="py-4 px-6">
                     <div className="font-bold text-slate-800">{row.name}</div>
@@ -51,7 +51,7 @@ export default function PayrollTable({ payrollData, onPaySalary }) {
                       </button>
                     ) : (
                       <button 
-                        onClick={() => onPaySalary(row.empId)}
+                        onClick={() => onPaySalary(row.payrollId)}
                         className="flex items-center gap-1.5 ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-100"
                       >
                         <CreditCard size={14} /> Pay

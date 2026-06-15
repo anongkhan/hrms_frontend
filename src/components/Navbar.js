@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CalendarDays, UserCircle2 } from "lucide-react";
+import { getStoredSession } from "@/lib/auth";
 
 function formatDateTime(date) {
   if (!date) {
@@ -21,12 +22,23 @@ function formatDateTime(date) {
 
 export default function Navbar() {
   const [now, setNow] = useState(() => new Date());
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
+    const sessionTimer = setTimeout(() => {
+      setSession(getStoredSession());
+    }, 0);
     const timer = setInterval(() => setNow(new Date()), 30000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(sessionTimer);
+      clearInterval(timer);
+    };
   }, []);
+
+  const user = session?.user;
+  const displayName = user?.Full_name || user?.name || user?.Email || "User";
+  const displayRole = user?.Role || user?.role || "";
 
   return (
     <header className="absolute top-0 right-0 left-0 z-20 h-20 border-b border-dash-border bg-white/90 px-10 backdrop-blur">
@@ -41,8 +53,8 @@ export default function Navbar() {
         <div className="flex h-12 min-w-44 items-center gap-3 rounded-full border border-dash-border bg-dash-pill px-4 shadow-sm">
           <UserCircle2 size={36} className="text-dash-primary" />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold leading-5 text-slate-800">anongkhan</p>
-            <p className="text-xs font-medium leading-4 text-dash-muted">HR</p>
+            <p className="truncate text-sm font-bold leading-5 text-slate-800">{displayName}</p>
+            <p className="text-xs font-medium leading-4 text-dash-muted">{displayRole}</p>
           </div>
         </div>
       </div>

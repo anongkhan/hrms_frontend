@@ -1,74 +1,100 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AttendancePunch from "./_components/AttendancePunch";
 import AttendanceHistory from "./_components/AttendanceHistory";
+import { apiRequest } from "@/lib/api";
+import { getStoredSession } from "@/lib/auth";
+import { notifySuccess, notifyError } from "@/lib/alert";
+
+function mapAttendance(row) {
+  const checkIn = row.Check_in ? new Date(row.Check_in) : null;
+  const checkOut = row.Check_out ? new Date(row.Check_out) : null;
+
+  return {
+    date: row.Work_Date?.slice?.(0, 10) || row.Work_Date,
+    checkIn: checkIn ? checkIn.toLocaleTimeString("en-US", { hour12: false }) : null,
+    checkOut: checkOut ? checkOut.toLocaleTimeString("en-US", { hour12: false }) : null,
+    status: checkIn && (checkIn.getHours() > 8 || (checkIn.getHours() === 8 && checkIn.getMinutes() > 0)) ? "Late" : "On Time",
+    note: row.Full_name,
+  };
+}
 
 export default function AttendancePage() {
-  // ສະຖານະການກົດຂອງມື້ນີ້
-  const [todayStatus, setTodayStatus] = useState({ checkIn: null, checkOut: null });
+  const [history, setHistory] = useState([]);
+  const [error, setError] = useState("");
+  const session = getStoredSession();
+  const role = session?.user?.Role;
+  const canPunchAttendance = role !== "HR";
 
-  // ປະຫວັດການມາວຽກຈຳລອງ (Mock Data)
-  const [history, setHistory] = useState([
-    { date: "18-05-2026", checkIn: "07:54:20", checkOut: "17:02:11", status: "On Time", note: "Normal working day" },
-    { date: "17-05-2026", checkIn: "08:12:05", checkOut: "17:05:00", status: "Late", note: "Traffic jam" },
-    { date: "16-05-2026", checkIn: "07:45:12", checkOut: "17:00:30", status: "On Time", note: "Normal working day" },
-  ]);
+  const loadAttendance = useCallback(async () => {
+    try {
+      const rows = await apiRequest("/api/attendance");
+      setHistory((rows || []).map(mapAttendance));
+      setError("");
+    } catch (err) {
+      setError(err.message);
+    }
+  }, []);
 
-  // 🛠️ Logic ຕອນກົດເຂົ້າງານ
-  const handleCheckIn = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString("en-US", { hour12: false });
-    
-    // ເຊັກ Logic ວ່າ ມາຊ້າ ຫຼື ມາກົງເວລາ (ສົມມຸດໃຫ້ເຂົ້າວຽກກ່ອນ 08:00 AM)
-    const isLate = now.getHours() >= 8 && now.getMinutes() > 0;
-    const currentStatus = isLate ? "Late" : "On Time";
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadAttendance();
+    }, 0);
 
-    setTodayStatus(prev => ({ ...prev, checkIn: timeString }));
-    
-    // ເພີ່ມເຂົ້າໄປໃນປະຫວັດ
-    const newRecord = {
-      date: now.toLocaleDateString("en-GB").replace(/\//g, "-"),
-      checkIn: timeString,
-      checkOut: null,
-      status: currentStatus,
-      // note: isLate ? "มาสายเกินเวลาที่กำหนด" : "เข้างานตรงเวลา"
+    return () => clearTimeout(timer);
+  }, [loadAttendance]);
+
+  const todayStatus = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRecord = history.find((row) => row.date === today);
+
+    return {
+      checkIn: todayRecord?.checkIn || null,
+      checkOut: todayRecord?.checkOut || null,
     };
-    setHistory([newRecord, ...history]);
+  }, [history]);
+
+  const handleCheckIn = async () => {
+    try {
+      await apiRequest("/api/attendance/check-in", { method: "POST" });
+      notifySuccess("Checked in successfully");
+      await loadAttendance();
+    } catch (err) {
+      notifyError(err.message);
+      setError(err.message);
+    }
   };
 
-  // 🛠️ Logic ຕອນກົດອອກງານ
-  const handleCheckOut = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString("en-US", { hour12: false });
-
-    setTodayStatus(prev => ({ ...prev, checkOut: timeString }));
-
-    // ອັບເດດເວລາອອກໃນ Record ລ້າສຸດຂອງປະຫວັດ
-    setHistory(prevHistory => {
-      const updated = [...prevHistory];
-      if (updated.length > 0) {
-        updated[0].checkOut = timeString;
-      }
-      return updated;
-    });
+  const handleCheckOut = async () => {
+    try {
+      await apiRequest("/api/attendance/check-out", { method: "POST" });
+      notifySuccess("Checked out successfully");
+      await loadAttendance();
+    } catch (err) {
+      notifyError(err.message);
+      setError(err.message);
+    }
   };
 
   return (
     <div className="space-y-8">
-      {/* Title Section */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Time Attendance</h1>
-        {/* <p className="text-sm text-slate-400 mt-1">ບັນທຶກເວລາງານປະຈຳວັນ ແລະ ກວດສອບສະຖິຕິການມາເຮັດວຽກ</p> */}
       </div>
 
-      {/* 1. Component ປຸ່ມກົດເຂົ້າ-ອອກວຽກ */}
-      <AttendancePunch 
-        onCheckIn={handleCheckIn}
-        onCheckOut={handleCheckOut}
-        todayStatus={todayStatus}
-      />
+      {error && (
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-600">
+          {error}
+        </div>
+      )}
 
-      {/* 2. Component ຕາຕະລາງປະຫວັດ */}
+      {canPunchAttendance && (
+        <AttendancePunch
+          onCheckIn={handleCheckIn}
+          onCheckOut={handleCheckOut}
+          todayStatus={todayStatus}
+        />
+      )}
       <AttendanceHistory history={history} />
     </div>
   );

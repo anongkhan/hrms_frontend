@@ -11,22 +11,27 @@ import {
   LogOut,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { clearSession, getStoredSession, ROLE_ROUTES } from "@/lib/auth";
+
+const menu = [
+  { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
+  { name: "Employee", icon: <Users size={20} />, path: "/teams" },
+  { name: "Attendance", icon: <Clock size={20} />, path: "/attendance" },
+  { name: "Leave", icon: <CreditCard size={20} />, path: "/leave" },
+  { name: "Payroll", icon: <Wallet size={20} />, path: "/payroll" },
+  { name: "Reports", icon: <FileText size={20} />, path: "/reports" },
+];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-
-  const menu = [
-    { name: "ໜ້າຫຼັກ", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
-    { name: "ພະນັກງານ", icon: <Users size={20} />, path: "/teams" },
-    { name: "ການມາວຽກ", icon: <Clock size={20} />, path: "/attendance" },
-    { name: "ການລາພັກ", icon: <CreditCard size={20} />, path: "/leave" },
-    { name: "ຄິດໄລ່ເງິນເດືອນ", icon: <Wallet size={20} />, path: "/payroll" },
-    { name: "ລາຍງານ", icon: <FileText size={20} />, path: "/reports" },
-  ];
+  const session = getStoredSession();
+  const role = session?.user?.Role;
+  const allowedRoutes = ROLE_ROUTES[role] || [];
+  const visibleMenu = menu.filter((item) => allowedRoutes.includes(item.path));
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    clearSession();
     router.push("/");
   };
 
@@ -42,13 +47,10 @@ export default function Sidebar() {
           priority
         />
       </div>
-      
-      <hr
-        className="border-dash-border mb-4"
-        style={{ borderStyle: "dashed" }}
-      />
+
+      <hr className="border-dash-border mb-4" style={{ borderStyle: "dashed" }} />
       <nav className="flex-1 space-y-1 overflow-y-auto">
-        {menu.map((item) => (
+        {visibleMenu.map((item) => (
           <MenuItem
             key={item.name}
             item={item}

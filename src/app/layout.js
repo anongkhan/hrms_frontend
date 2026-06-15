@@ -1,6 +1,5 @@
 import "./globals.css";
 import { Noto_Serif } from "next/font/google";
-import { Toaster } from "react-hot-toast";
 
 const notoSerif = Noto_Serif({
   weight: ["300", "400", "500", "600", "700", "900"],
@@ -14,7 +13,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="lo" className={notoSerif.variable}>
       <body className="antialiased bg-gray-50 text-slate-900">
-        <Toaster position="top-right" />
         {children}
       </body>
     </html>

@@ -1,9 +1,35 @@
 "use client";
 import { useState } from "react";
-import { Plus, Search, Edit2, Trash2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, MoreVertical } from "lucide-react";
 
-export default function EmployeeList({ employees, onAddNew }) {
+export default function EmployeeList({ employees, onAddNew, onEdit, onDelete }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+
+  const MENU_WIDTH = 144;
+  const MENU_HEIGHT = 96;
+
+  const toggleMenu = (emp, event) => {
+    if (openMenuId === emp.empId) {
+      setOpenMenuId(null);
+      return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    // ໂດຍ default ເປີດລົງລຸ່ມ; ຖ້າພື້ນທີ່ລຸ່ມບໍ່ພໍ → ພິກຂຶ້ນເທິງ (ກັນຖືກຂອບຈໍຕັດ)
+    let top = rect.bottom + 6;
+    if (top + MENU_HEIGHT > window.innerHeight) {
+      top = rect.top - MENU_HEIGHT - 6;
+    }
+
+    // ຊິດຂວາຂອງປຸ່ມ; ກັນບໍ່ໃຫ້ລົ້ນຊ້າຍຈໍ
+    let left = rect.right - MENU_WIDTH;
+    if (left < 8) left = 8;
+
+    setMenuPos({ top, left });
+    setOpenMenuId(emp.empId);
+  };
 
   // ຟັງຊັນຄົ້ນຫາຂໍ້ມູນ
   const filteredEmployees = employees.filter(emp => 
@@ -66,6 +92,7 @@ export default function EmployeeList({ employees, onAddNew }) {
                     <td className="py-4 px-6">
                       <div>{emp.tel}</div>
                       <div className="text-xs text-slate-400 font-normal">{emp.email}</div>
+                      {emp.address && <div className="text-xs text-slate-300 font-normal mt-0.5">{emp.address}</div>}
                     </td>
                     <td className="py-4 px-6">
                       <div className="font-medium text-slate-700">{emp.department}</div>
@@ -82,14 +109,14 @@ export default function EmployeeList({ employees, onAddNew }) {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                          <Edit2 size={16} />
-                        </button>
-                        <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => toggleMenu(emp, e)}
+                        className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all"
+                        aria-label="Actions"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -104,6 +131,40 @@ export default function EmployeeList({ employees, onAddNew }) {
           </table>
         </div>
       </div>
+
+      {/* Dropdown menu (fixed -> ບໍ່ໂດນ overflow ຂອງຕາຕະລາງຕັດ) */}
+      {openMenuId && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
+          <div
+            className="fixed z-50 w-36 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl"
+            style={{ top: menuPos.top, left: menuPos.left }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                const emp = employees.find((e) => e.empId === openMenuId);
+                setOpenMenuId(null);
+                if (emp) onEdit?.(emp);
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600"
+            >
+              <Edit2 size={15} /> Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const id = openMenuId;
+                setOpenMenuId(null);
+                onDelete?.(id);
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-red-50 hover:text-red-600"
+            >
+              <Trash2 size={15} /> Delete
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
