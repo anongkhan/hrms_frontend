@@ -1,7 +1,26 @@
 "use client";
-import { Calendar, Check, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Check, CheckCircle, X } from "lucide-react";
 
-export default function LeaveHistory({ history, isHr = false, onApproveLeave }) {
+export default function LeaveHistory({
+  history,
+  isHr = false,
+  canCancelLeave = false,
+  onApproveLeave,
+  onCancelLeave,
+}) {
+  const [submittingId, setSubmittingId] = useState(null);
+  const showActionColumn = isHr || canCancelLeave;
+
+  const submitCancel = async (leaveId) => {
+    try {
+      setSubmittingId(leaveId);
+      await onCancelLeave(leaveId);
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="font-bold text-slate-800 text-lg pt-2">Leave History (ປະຫວັດການລາພັກ)</h3>
@@ -15,7 +34,7 @@ export default function LeaveHistory({ history, isHr = false, onApproveLeave }) 
                 <th className="py-5 px-6">Duration</th>
                 <th className="py-5 px-6">Reason</th>
                 <th className="py-5 px-6">Status</th>
-                {isHr && <th className="py-5 px-6 text-right">Action</th>}
+                {showActionColumn && <th className="py-5 px-6 text-right">Action</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-sm text-slate-600">
@@ -23,7 +42,11 @@ export default function LeaveHistory({ history, isHr = false, onApproveLeave }) 
                 <tr key={row.id || index} className="hover:bg-slate-50/40 transition-colors">
                   <td className="py-4 px-6 font-semibold text-slate-800">
                     <div>{row.type}</div>
-                    {row.employeeName && <div className="mt-0.5 text-xs font-medium text-slate-400">{row.employeeName}</div>}
+                    {row.employeeName && (
+                      <div className="mt-0.5 text-xs font-medium text-slate-400">
+                        {row.employeeName}
+                      </div>
+                    )}
                   </td>
                   <td className="py-4 px-6 text-slate-600">
                     <div className="flex items-center gap-1.5 font-medium">
@@ -31,19 +54,27 @@ export default function LeaveHistory({ history, isHr = false, onApproveLeave }) 
                       {row.startDate} ຫາ {row.endDate}
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-slate-400 max-w-xs truncate">{row.reason}</td>
+                  <td className="py-4 px-6 text-slate-400 max-w-xs">
+                    <div className="truncate">{row.reason}</div>
+                    {row.cancelReason && (
+                      <div className="mt-1 truncate text-xs font-medium text-rose-400">
+                        Cancel reason: {row.cancelReason}
+                      </div>
+                    )}
+                  </td>
                   <td className="py-4 px-6">
                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${
                       row.status === "Approved" ? "bg-emerald-50 text-emerald-600" :
                       row.status === "Rejected" ? "bg-rose-50 text-rose-600" :
+                      row.status === "Cancelled" ? "bg-slate-100 text-slate-500" :
                       "bg-amber-50 text-amber-600 animate-pulse"
                     }`}>
                       {row.status}
                     </span>
                   </td>
-                  {isHr && (
+                  {showActionColumn && (
                     <td className="py-4 px-6 text-right">
-                      {row.status === "Pending" ? (
+                      {isHr && row.status === "Pending" ? (
                         <button
                           type="button"
                           onClick={() => onApproveLeave(row.id)}
@@ -51,15 +82,28 @@ export default function LeaveHistory({ history, isHr = false, onApproveLeave }) 
                         >
                           <Check size={14} /> Approve
                         </button>
+                      ) : canCancelLeave && row.status === "Pending" ? (
+                        <button
+                          type="button"
+                          disabled={submittingId === row.id}
+                          onClick={() => submitCancel(row.id)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-rose-100 disabled:cursor-not-allowed disabled:bg-rose-300"
+                        >
+                          <X size={14} /> {submittingId === row.id ? "Cancelling..." : "Cancel"}
+                        </button>
                       ) : (
                         <button
                           type="button"
-                          className="p-2 text-emerald-600 bg-emerald-50 rounded-xl cursor-default"
-                          title="Leave approved"
-                          aria-label="Leave approved"
+                          className={`p-2 rounded-xl cursor-default ${
+                            row.status === "Cancelled"
+                              ? "bg-slate-100 text-slate-500"
+                              : "bg-emerald-50 text-emerald-600"
+                          }`}
+                          title={row.status}
+                          aria-label={row.status}
                           disabled
                         >
-                          <CheckCircle size={16} />
+                          {row.status === "Cancelled" ? <X size={16} /> : <CheckCircle size={16} />}
                         </button>
                       )}
                     </td>

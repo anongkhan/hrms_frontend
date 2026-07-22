@@ -11,7 +11,7 @@ export default function LeaveStats({ stats }) {
         </div>
         <div>
           <p className="text-2xl font-black text-slate-800">{stats.sick.used}/{stats.sick.total} ວັນ</p>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາປ່ວຍ (Sick Leave)</p>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາປ່ວຍ</p>
         </div>
       </div>
 
@@ -22,7 +22,7 @@ export default function LeaveStats({ stats }) {
         </div>
         <div>
           <p className="text-2xl font-black text-slate-800">{stats.personal.used}/{stats.personal.total} ວັນ</p>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາກິດ (Personal Leave)</p>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາກິດ</p>
         </div>
       </div>
 
@@ -33,7 +33,7 @@ export default function LeaveStats({ stats }) {
         </div>
         <div>
           <p className="text-2xl font-black text-slate-800">{stats.vacation.used}/{stats.vacation.total} ວັນ</p>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາພັກຮ້ອນ (Vacation Leave)</p>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາພັກຮ້ອນ</p>
         </div>
       </div>
     </div>

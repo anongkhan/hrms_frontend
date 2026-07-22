@@ -71,7 +71,7 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
         </button>
         <div>
           <h1 className="text-2xl font-bold text-slate-800">{isEdit ? "Edit Employee" : "Add New Employee"}</h1>
-          <p className="text-sm text-slate-400 mt-0.5">ກະລຸນາປ້ອນຂໍ້ມູນພະນັກງານໃໝ່ໃຫ້ຄົບຖ້ວນ</p>
+          {/* <p className="text-sm text-slate-400 mt-0.5">ກະລຸນາປ້ອນຂໍ້ມູນພະນັກງານໃໝ່ໃຫ້ຄົບຖ້ວນ</p> */}
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Email Address</label>
               <input type="email" name="employee_email" value={formData.email} onChange={(e) => update("email", e.target.value)}
-                autoComplete="off" className={inputCls("email")} placeholder="name@company.com" />
+                autoComplete="off" className={inputCls("email")} placeholder="name@email.com" />
               {renderError("email")}
             </div>
             <div>
@@ -152,20 +152,20 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
                 <option value="Human Resource">Human Resource</option>
                 <option value="Accounting">Accounting</option>
                 <option value="IT">IT</option>
-                <option value="IT Support">IT Support</option>
+                {/* <option value="IT Support">IT Support</option> */}
                 <option value="Marketing">Marketing</option>
               </select>
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Position</label>
               <input type="text" value={formData.position} onChange={(e) => update("position", e.target.value)}
-                className={inputCls("position")} placeholder="e.g. HR Manager" />
+                className={inputCls("position")} placeholder="HR Manager" />
               {renderError("position")}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Basic Salary (LAK)</label>
               <input type="number" value={formData.salary} onChange={(e) => update("salary", e.target.value)}
-                className={inputCls("salary")} placeholder="e.g. 5000000" />
+                className={inputCls("salary")} placeholder="5000000" />
               {renderError("salary")}
             </div>
             <div>
@@ -199,7 +199,7 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
             type="submit"
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-100"
           >
-            <Save size={16} /> {isEdit ? "Update Employee" : "Save Employee"}
+            <Save size={16} /> {isEdit ? "Update" : "Save"}
           </button>
         </div>
 

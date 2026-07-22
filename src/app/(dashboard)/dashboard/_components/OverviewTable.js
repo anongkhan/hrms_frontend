@@ -6,6 +6,9 @@ export default function OverviewTable({ employees }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
 
+  // ດຶງລາຍຊື່ພະແນກທີ່ມີຈິງຈາກຂໍ້ມູນພະນັກງານ (ບໍ່ຊ້ຳ + ລຽງ A-Z)
+  const departments = [...new Set(employees.map(emp => emp.department).filter(Boolean))].sort();
+
   // Filter ຂໍ້ມູນຕາມຄຳຄົ້ນຫາ ແລະ ພະແນກທີ່ເລືອກ
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || emp.empId.toLowerCase().includes(searchTerm.toLowerCase());
@@ -21,7 +24,7 @@ export default function OverviewTable({ employees }) {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
           <input 
             type="text" 
-            placeholder="ຄົ້ນຫາພະນັກງານດ້ວຍ ຊື່ ຫຼື ລຫັດ..." 
+            placeholder="ຄົ້ນຫາພະນັກງານ" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 text-slate-700 transition-all placeholder:text-slate-300"
@@ -37,10 +40,9 @@ export default function OverviewTable({ employees }) {
             className="bg-transparent text-xs font-bold text-slate-600 outline-none cursor-pointer"
           >
             <option value="All">All Departments</option>
-            <option value="Human Resource">Human Resource</option>
-            <option value="Accounting">Accounting</option>
-            <option value="IT Support">IT Support</option>
-            <option value="Marketing">Marketing</option>
+            {departments.map((dept) => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -48,7 +50,7 @@ export default function OverviewTable({ employees }) {
       {/* Main Table Container */}
       <div className="bg-white rounded-4xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white">
-          <h3 className="font-bold text-slate-800 text-base">All Employees Directory (ລາຍຊື່ບຸກຄະລາກອນທັງໝົດ)</h3>
+          <h3 className="font-bold text-slate-800 text-base">ລາຍຊື່ພະນັກງານທັງໝົດ</h3>
           <span className="text-xs bg-slate-100 text-slate-500 font-bold px-3 py-1 rounded-full">
             ທັງໝົດ {filteredEmployees.length} ຄົນ
           </span>
@@ -60,8 +62,8 @@ export default function OverviewTable({ employees }) {
               <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
                 <th className="py-5 px-6">Employee ID</th>
                 <th className="py-5 px-6">Full Name</th>
-                <th className="py-5 px-6">Department (ພະແນກ)</th>
-                <th className="py-5 px-6">Position (ຕຳແໜ່ງ)</th>
+                <th className="py-5 px-6">Department</th>
+                <th className="py-5 px-6">Position</th>
                 <th className="py-5 px-6">Status</th>
               </tr>
             </thead>

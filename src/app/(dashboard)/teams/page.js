@@ -21,6 +21,15 @@ function mapEmployee(row) {
   };
 }
 
+// ສ້າງ Emp_ID ຕໍ່ເນື່ອງ ໂດຍອີງຈາກເລກສູງສຸດທີ່ມີຢູ່ (ກັນຊ້ຳກັນເມື່ອມີການລຶບ)
+function nextEmployeeId(employees) {
+  const maxNum = (employees || []).reduce((max, emp) => {
+    const match = /^EMP-(\d+)$/.exec(emp.empId || "");
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+  return `EMP-${String(maxNum + 1).padStart(3, "0")}`;
+}
+
 const emptyForm = {
   empId: "",
   name: "",
@@ -30,7 +39,7 @@ const emptyForm = {
   email: "",
   password: "",
   department: "Human Resource",
-  position: "HR Staff",
+  position: "",
   salary: "",
   bankAccountNumber: "",
   role: "Employee",
@@ -64,7 +73,7 @@ export default function TeamsPage() {
   const handleAddNew = () => {
     setFormData({
       ...emptyForm,
-      empId: `EMP-${String(employees.length + 1).padStart(3, "0")}`,
+      empId: nextEmployeeId(employees),
     });
     setFormMode("create");
     setViewMode("form");
@@ -103,11 +112,16 @@ export default function TeamsPage() {
         payload.Password = formData.password;
       }
 
+      // ສ້າງໃໝ່ → ສົ່ງ Emp_ID ທີ່ສະແດງໃນຟອມໄປບັນທຶກນຳ (ໃຫ້ກົງກັນ)
+      if (!isEdit) {
+        payload.Emp_ID = formData.empId;
+      }
+
       await apiRequest(isEdit ? `/api/employees/${formData.empId}` : "/api/employees", {
         method: isEdit ? "PUT" : "POST",
         body: JSON.stringify(payload),
       });
-      notifySuccess(isEdit ? "Employee updated successfully" : "Employee created successfully");
+      notifySuccess(isEdit ? "updated successfully" : "Employee created successfully");
       await loadEmployees();
       setViewMode("list");
       setFormMode("create");

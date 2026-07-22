@@ -60,7 +60,7 @@ export default function LeaveForm({ onSubmitLeave }) {
 
   return (
     <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-sm">
-      <h3 className="font-bold text-slate-800 text-lg mb-6">Request Leave (ຟອມຍື່ນຂໍລາພັກ)</h3>
+      <h3 className="font-bold text-slate-800 text-lg mb-6">ຟອມຂໍລາພັກ</h3>
       
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -72,9 +72,9 @@ export default function LeaveForm({ onSubmitLeave }) {
               onChange={(e) => setFormData({...formData, type: e.target.value})}
               className="w-full p-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-600/20 outline-none text-sm text-slate-700 transition-all"
             >
-              <option value="Sick Leave">ລາປ່ວຍ (Sick Leave)</option>
-              <option value="Personal Leave">ລາກິດ (Personal Leave)</option>
-              <option value="Vacation Leave">ລາພັກຮ້ອນ (Vacation Leave)</option>
+              <option value="Sick Leave">ລາປ່ວຍ</option>
+              <option value="Personal Leave">ລາກິດ</option>
+              <option value="Vacation Leave">ລາພັກຮ້ອນ</option>
             </select>
           </div>
 

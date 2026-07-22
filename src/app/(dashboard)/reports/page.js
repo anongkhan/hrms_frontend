@@ -75,17 +75,17 @@ export default function ReportsPage() {
   const summary = useMemo(() => {
     if (reportType === "payroll") {
       return {
-        primaryLabel: "Total Expense",
+        primaryLabel: "ລາຍຈ່າຍທັງໝົດ",
         primaryValue: formatCurrency(activeRows.reduce((sum, row) => sum + getPayrollTotal(row), 0)),
-        secondaryLabel: "Departments",
+        secondaryLabel: "ພະແນກ",
         secondaryValue: activeRows.length,
       };
     }
 
     return {
-      primaryLabel: "Present Days",
+      primaryLabel: "ປະຈຸບັນ",
       primaryValue: activeRows.reduce((sum, row) => sum + Number(row.presentDays || 0), 0),
-      secondaryLabel: "Leave / Absent",
+      secondaryLabel: "ລາພັກ / ຂາດວຽກ",
       secondaryValue: `${activeRows.reduce((sum, row) => sum + Number(row.leaveDays || 0), 0)} / ${activeRows.reduce((sum, row) => sum + Number(row.absentDays || 0), 0)}`,
     };
   }, [activeRows, reportType]);
@@ -121,7 +121,7 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Reports</h1>
-          <p className="mt-1 text-sm text-slate-400">HRMS report table</p>
+          {/* <p className="mt-1 text-sm text-slate-400">HRMS report table</p> */}
         </div>
 
         <button
@@ -215,7 +215,7 @@ export default function ReportsPage() {
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 className="w-full rounded-xl border border-slate-100 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:ring-2 focus:ring-blue-600/20"
-                placeholder="Search report..."
+                placeholder="ຄົ້ນຫາລາຍງານ..."
               />
             </div>
             <button
@@ -259,7 +259,7 @@ export default function ReportsPage() {
                 ))}
                 {activeRows.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="px-6 py-10 text-center font-medium text-slate-300">No report data found</td>
+                    <td colSpan="8" className="px-6 py-10 text-center font-medium text-slate-300">ບໍ່ພົບຂໍ້ມູນລາຍງານ</td>
                   </tr>
                 )}
               </tbody>
@@ -293,7 +293,7 @@ export default function ReportsPage() {
                 ))}
                 {activeRows.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="px-6 py-10 text-center font-medium text-slate-300">No report data found</td>
+                    <td colSpan="8" className="px-6 py-10 text-center font-medium text-slate-300">ບໍ່ພົບຂໍ້ມູນລາຍງານ</td>
                   </tr>
                 )}
               </tbody>

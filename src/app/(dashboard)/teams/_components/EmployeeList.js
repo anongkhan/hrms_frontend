@@ -58,7 +58,7 @@ export default function EmployeeList({ employees, onAddNew, onEdit, onDelete }) 
         <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
         <input 
           type="text" 
-          placeholder="Search by name or Employee ID..." 
+          placeholder="ຄົ້ນຫາພະນັກງານ" 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 text-slate-700 transition-all placeholder:text-slate-300"
@@ -92,7 +92,7 @@ export default function EmployeeList({ employees, onAddNew, onEdit, onDelete }) 
                     <td className="py-4 px-6">
                       <div>{emp.tel}</div>
                       <div className="text-xs text-slate-400 font-normal">{emp.email}</div>
-                      {emp.address && <div className="text-xs text-slate-300 font-normal mt-0.5">{emp.address}</div>}
+                      {/* {emp.address && <div className="text-xs text-slate-300 font-normal mt-0.5">{emp.address}</div>} */}
                     </td>
                     <td className="py-4 px-6">
                       <div className="font-medium text-slate-700">{emp.department}</div>

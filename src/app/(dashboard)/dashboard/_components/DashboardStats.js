@@ -11,7 +11,7 @@ export default function DashboardStats({ totalEmp, totalPresent, totalOnLeave })
         </div>
         <div>
           <p className="text-2xl font-black text-slate-800">{totalEmp} ຄົນ</p>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Total Workforce (ພະນັກງານທັງໝົດ)</p>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">ພະນັກງານທັງໝົດ</p>
         </div>
       </div>
 
@@ -22,7 +22,7 @@ export default function DashboardStats({ totalEmp, totalPresent, totalOnLeave })
         </div>
         <div>
           <p className="text-2xl font-black text-slate-800">{totalPresent} ຄົນ</p>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Checked In Today (ເຂົ້າງານແລ້ວມື້ນີ້)</p>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">ມາວຽກແລ້ວມື້ນີ້</p>
         </div>
       </div>
 
@@ -33,7 +33,7 @@ export default function DashboardStats({ totalEmp, totalPresent, totalOnLeave })
         </div>
         <div>
           <p className="text-2xl font-black text-slate-800">{totalOnLeave} ຄົນ</p>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">On Leave Today (ລາພັກມື້ນີ້)</p>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">ລາພັກມື້ນີ້</p>
         </div>
       </div>
     </div>

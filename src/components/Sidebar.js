@@ -14,12 +14,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { clearSession, getStoredSession, ROLE_ROUTES } from "@/lib/auth";
 
 const menu = [
-  { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
-  { name: "Employee", icon: <Users size={20} />, path: "/teams" },
-  { name: "Attendance", icon: <Clock size={20} />, path: "/attendance" },
-  { name: "Leave", icon: <CreditCard size={20} />, path: "/leave" },
-  { name: "Payroll", icon: <Wallet size={20} />, path: "/payroll" },
-  { name: "Reports", icon: <FileText size={20} />, path: "/reports" },
+  { name: "ໜ້າຫຼັກ", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
+  { name: "ພະນັກງານ", icon: <Users size={20} />, path: "/teams" },
+  { name: "ການມາວຽກ", icon: <Clock size={20} />, path: "/attendance" },
+  { name: "ການລາພັກ", icon: <CreditCard size={20} />, path: "/leave" },
+  { name: "ເງິນເດືອນ", icon: <Wallet size={20} />, path: "/payroll" },
+  { name: "ລາຍງານ", icon: <FileText size={20} />, path: "/reports" },
 ];
 
 export default function Sidebar() {
@@ -36,10 +36,10 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-56 h-screen bg-dash-sidebar border-r border-dash-border flex flex-col p-5 fixed left-0 top-0 z-30 font-bold shadow-[4px_0_24px_rgba(15,23,42,0.03)]">
+    <div className="w-56 h-screen bg-dash-sidebar border-r border-white/10 flex flex-col p-5 fixed left-0 top-0 z-30 font-bold shadow-[4px_0_24px_rgba(15,23,42,0.25)]">
       <div className="flex h-20 items-center justify-center mb-2">
         <Image
-          src="/images/logo.jpeg"
+          src="/images/logo.png"
           alt="HRMS"
           width={88}
           height={88}
@@ -47,8 +47,7 @@ export default function Sidebar() {
           priority
         />
       </div>
-
-      <hr className="border-dash-border mb-4" style={{ borderStyle: "dashed" }} />
+      <hr className="-mx-5 mb-4 w-[calc(100%+2.5rem)] border-0 border-t-2 border-slate-500/35" />
       <nav className="flex-1 space-y-1 overflow-y-auto">
         {visibleMenu.map((item) => (
           <MenuItem
@@ -63,9 +62,9 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={handleLogout}
-        className="flex items-center gap-3 px-3.5 py-3 text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm mt-auto w-full"
+        className="flex items-center gap-3 px-3.5 py-3 text-rose-400 hover:bg-white/10 hover:text-rose-300 rounded-xl transition-all font-bold text-sm mt-auto w-full"
       >
-        <LogOut size={20} /> Logout
+        <LogOut size={20} /> ອອກຈາກລະບົບ
       </button>
     </div>
   );
@@ -77,11 +76,10 @@ function MenuItem({ item, active, onClick }) {
       onClick={onClick}
       className={`relative flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-all ${
         active
-          ? "bg-dash-active-bg text-dash-primary shadow-sm"
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          ? "bg-white/10 text-white shadow-sm"
+          : "text-slate-300 hover:bg-white/5 hover:text-white"
       }`}
     >
-      {active && <span className="absolute left-0 top-2.5 h-6 w-1 rounded-r-full bg-dash-primary" />}
       <span className="shrink-0">{item.icon}</span>
       <span className="whitespace-nowrap text-[15px] font-extrabold leading-none">{item.name}</span>
     </div>

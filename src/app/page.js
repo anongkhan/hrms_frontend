@@ -51,7 +51,7 @@ export default function LoginPage() {
         </div>
 
         <div className="flex-1 bg-white p-16 flex flex-col justify-center">
-          <h3 className="text-3xl font-bold text-slate-800 mb-10 text-center">Login</h3>
+          <h3 className="text-3xl font-bold text-slate-800 mb-10 text-center">ເຂົ້າສູ່ລະບົບ</h3>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>

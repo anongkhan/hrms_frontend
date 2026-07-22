@@ -14,14 +14,21 @@ const fallbackStats = {
 };
 
 function mapLeave(row) {
+  const reason = row.Reason || "";
+  const cancelReason = row.Cancel_reason || row.CancelReason || row.Cancel_reason_text;
+  const storedCancelReason = row.Status === "Cancelled" && reason.startsWith("Cancelled:")
+    ? reason.replace(/^Cancelled:\s*/, "")
+    : "";
+
   return {
     id: row.Leave_id,
     employeeName: row.Full_name,
     type: row.Leave_type,
     startDate: row.Start_date?.slice?.(0, 10) || row.Start_date,
     endDate: row.End_date?.slice?.(0, 10) || row.End_date,
-    reason: row.Reason,
+    reason: storedCancelReason ? "Cancelled by employee" : reason,
     status: row.Status,
+    cancelReason: cancelReason || storedCancelReason,
   };
 }
 
@@ -32,6 +39,7 @@ export default function LeavePage() {
   const session = getStoredSession();
   const role = session?.user?.Role;
   const canApproveLeave = role === "HR" || role === "Admin";
+  const canCancelLeave = role === "Employee";
 
   const loadLeaveData = useCallback(async () => {
     try {
@@ -88,6 +96,22 @@ export default function LeavePage() {
     }
   };
 
+  const handleCancelLeave = async (leaveId) => {
+    try {
+      await apiRequest("/api/leave/cancel", {
+        method: "PUT",
+        body: JSON.stringify({
+          Leave_id: leaveId,
+        }),
+      });
+      notifySuccess("Leave request cancelled");
+      await loadLeaveData();
+    } catch (err) {
+      notifyError(err.message);
+      setError(err.message);
+    }
+  };
+
   const title = useMemo(() => (
     canApproveLeave ? "Leave Requests" : "My Leave"
   ), [canApproveLeave]);
@@ -104,8 +128,8 @@ export default function LeavePage() {
         </div>
       )}
 
-      {/* HR/Admin = ຜູ້ອະນຸມັດ → ເຫັນແຕ່ Leave History; Employee → ເຫັນສະຖິຕິ + ຟອມຍື່ນຂໍລາ */}
-      {!canApproveLeave && (
+      {/* HR = ຜູ້ອະນຸມັດ → ເຫັນແຕ່ Leave History; Employee & Admin → ເຫັນສະຖິຕິ + ຟອມຍື່ນຂໍລາ */}
+      {role !== "HR" && (
         <>
           <LeaveStats stats={leaveStats} />
           <LeaveForm onSubmitLeave={handleLeaveSubmit} />
@@ -114,7 +138,9 @@ export default function LeavePage() {
       <LeaveHistory
         history={history}
         isHr={canApproveLeave}
+        canCancelLeave={canCancelLeave}
         onApproveLeave={handleApproveLeave}
+        onCancelLeave={handleCancelLeave}
       />
     </div>
   );

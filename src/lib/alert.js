@@ -1,40 +1,51 @@
-import Swal from "sweetalert2";
+// ລະບົບແຈ້ງເຕືອນແບບ custom modal dialog (ບໍ່ໃຊ້ SweetAlert ແລ້ວ)
+// ໃຊ້ store ນ້ອຍໆ + <NotificationModal /> ທີ່ mount ໄວ້ໃນ layout ເປັນຄົນ render
 
-// ກ່ອງແຈ້ງເຕືອນກາງຈໍ (center popup)
+let listener = null;
+let resolver = null;
 
-export function notifySuccess(title, text = "") {
-  return Swal.fire({
-    icon: "success",
-    title,
-    text,
-    timer: 1800,
-    timerProgressBar: true,
-    showConfirmButton: false,
-    customClass: { popup: "rounded-3xl" },
+function show(config) {
+  return new Promise((resolve) => {
+    resolver = resolve;
+    if (listener) listener(config);
+    else resolve({ isConfirmed: false });
   });
 }
 
+// ໃຫ້ <NotificationModal /> ມາ subscribe
+export function subscribeAlert(fn) {
+  listener = fn;
+  return () => {
+    if (listener === fn) listener = null;
+  };
+}
+
+// ໃຫ້ <NotificationModal /> ເອີ້ນເມື່ອຜູ້ໃຊ້ກົດປຸ່ມ
+export function resolveAlert(isConfirmed) {
+  const r = resolver;
+  resolver = null;
+  if (r) r({ isConfirmed });
+}
+
+export function notifySuccess(title, text = "") {
+  return show({ variant: "success", title, text, confirmText: "OK" });
+}
+
 export function notifyError(message) {
-  return Swal.fire({
-    icon: "error",
+  return show({
+    variant: "error",
     title: "Oops...",
     text: message || "Something went wrong",
-    confirmButtonColor: "#2563eb",
-    confirmButtonText: "OK",
-    customClass: { popup: "rounded-3xl" },
+    confirmText: "OK",
   });
 }
 
 export function confirmDelete(text = "This action cannot be undone.") {
-  return Swal.fire({
+  return show({
+    variant: "confirm",
     title: "Are you sure?",
     text,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#e11d48",
-    cancelButtonColor: "#64748b",
-    confirmButtonText: "Yes, delete",
-    cancelButtonText: "Cancel",
-    customClass: { popup: "rounded-3xl" },
+    confirmText: "delete",
+    cancelText: "Cancel",
   });
 }

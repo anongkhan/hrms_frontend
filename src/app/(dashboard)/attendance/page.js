@@ -9,13 +9,16 @@ import { notifySuccess, notifyError } from "@/lib/alert";
 function mapAttendance(row) {
   const checkIn = row.Check_in ? new Date(row.Check_in) : null;
   const checkOut = row.Check_out ? new Date(row.Check_out) : null;
+  const employeeId = row.Emp_ID || row.empId || row.employeeId || row.User_ID || row.User_id;
+  const employeeName = row.Full_name || row.fullName || row.employeeName || row.Name || row.name;
 
   return {
     date: row.Work_Date?.slice?.(0, 10) || row.Work_Date,
+    employeeId,
+    employeeName,
     checkIn: checkIn ? checkIn.toLocaleTimeString("en-US", { hour12: false }) : null,
     checkOut: checkOut ? checkOut.toLocaleTimeString("en-US", { hour12: false }) : null,
     status: checkIn && (checkIn.getHours() > 8 || (checkIn.getHours() === 8 && checkIn.getMinutes() > 0)) ? "Late" : "On Time",
-    note: row.Full_name,
   };
 }
 
@@ -95,7 +98,7 @@ export default function AttendancePage() {
           todayStatus={todayStatus}
         />
       )}
-      <AttendanceHistory history={history} />
+      <AttendanceHistory history={history} role={role} />
     </div>
   );
 }
