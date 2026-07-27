@@ -1,14 +1,17 @@
 @AGENTS.md
 
-role มี4 admin, hr, accounting, employee
-- employee ให้เห็นแค่หน้า dashboard, attendance, leave สำหรับ employee ไม่ให้เห็น fields action ให้เห็นแค่ fields Leave Type	Duration	Reason	Status
-- hr ให้เห็น  dashboard, employee, attendance, leave หน้าการลาให้เห็นแค่ส่วนของตรงประวัติการลาเพราะ hr จะต้องเป็นคนกดอนุมัด
-- accounting ให้เห็นแค่หน้า payroll, reports, หน้า payroll ระบบจะต้องคำนวณเงินเดือนอัตโนมัติ ค่า tax 5% ค่าประกันสังคมตามกดหมายของประเทดลาว
-- admin จะค้องเห็นคบทุกหน้า
+## Overview project
+- ระบบ HRMS
+- มี 4 role admin, hr, accounting, employee
+- employee มีหน้าที่แค่กดเข้างาน การขอลา
+- hr เพี่ม, ลบ, แก้ไขข้อมูนตำแหน่ง และ แผนกได้สามารถดูการมาสายหรือการขาดงานของพนักงานได้
+- accounting กดจ่ายเงินให้แก่พนักงานสร้างรายงาน
+- ระบบจะต้องคำนวณเงินเดือนพื้นฐานตามนำแหน่ง, คำนวณ OT, ค่า tax 5%, 
+ค่าประกันสังคม 5.5% แบบอัตโนมัติ
+- admin เห็นคบทุกหน้า
 
-ในส่วนของ frontend ui ตามนั้นเลยไม่ต้องไปแตะอะไรเพิ่มทำแค่ในส่วนของ backend อย่างเดียวคือ config database สร้าง api ตาม role ข้างบนชื่อ table ของ database ดูได้ตามข้างล่างนี้เลยหลังจากสร้าง api เสร็จแล้วให้ข้อมูนสำหรับการ test api ด้วย
 
-ความสัมพันธ์
+## ความสัมพันธ์ ER Model
 
 | ลำดับ | Entity หลัก | Entity ที่เกี่ยวข้อง | ความสัมพันธ์ | ความหมาย                             |
 | ----- | ----------- | -------------------- | ------------ | ------------------------------------ |
@@ -20,8 +23,9 @@ role มี4 admin, hr, accounting, employee
 | 6     | Employee    | Bank_Account         | 1 : 1        | 1 พนักงานมีบัญชีธนาคาร 1 บัญชี       |
 | 7     | Employee    | OT                   | 1 : M        | 1 พนักงานมีข้อมูล OT หลายรายการ      |
 
+## Database
 * ชื่อ database hrms_db      
-  table name
+- table name
 
 - department 
   Field Name	Data Type	Key	Reference
@@ -91,70 +95,6 @@ role มี4 admin, hr, accounting, employee
   Social_sec	Decimal(15,2)
   Net_salary	Decimal(15,2)
   Pay_date	Date
-
----
-
-# แผนงานอนาคต: Audit Log (ยังไม่ทำ — รอสั่ง)
-
-> บันทึกไว้สำหรับอนาคต เมื่อจะเปิดให้ HR / Accounting / Admin แก้ไขข้อมูลได้
-> เป้าหมาย: ตอบให้ได้ว่า "ใครแก้ อะไร เมื่อไหร่ จากค่าอะไรเป็นค่าอะไร" (กรณีข้อมูลผิด/ตรวจสอบย้อนหลัง)
-> ทำที่ **backend (d:\hrms-backend) เท่านั้น** — frontend UI ไม่ต้องแตะ จนกว่าจะถึงขั้น "หน้า View Logs"
-> หมายเหตุ: `authMiddleware` ใส่ `req.user = { empId, role }` ให้ทุก request แล้ว → รู้ "ใคร" ได้ทันที
-
-## ลำดับการทำ (ทำตามนี้)
-
-### ขั้น 1 — สร้างตาราง `audit_log` (เพิ่มใน schema.sql)
-```sql
-CREATE TABLE audit_log (
-    Log_id      INT          NOT NULL AUTO_INCREMENT,
-    Emp_id      VARCHAR(15),              -- ใครทำ (req.user.empId)
-    Action      VARCHAR(20),             -- CREATE / UPDATE / DELETE
-    Table_name  VARCHAR(50),             -- แก้ตารางไหน เช่น 'employee'
-    Record_id   VARCHAR(50),             -- แก้ record ไหน เช่น 'EMP-003'
-    Old_value   JSON,                    -- ค่าเดิม (ก่อนแก้)
-    New_value   JSON,                    -- ค่าใหม่ (หลังแก้)
-    Created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (Log_id),
-    CONSTRAINT fk_audit_emp FOREIGN KEY (Emp_id) REFERENCES employee (Emp_ID) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### ขั้น 2 — สร้าง helper `utils/audit.js`
-```js
-const db = require('../config/db');
-
-async function writeAuditLog({ empId, action, table, recordId, oldValue = null, newValue = null }) {
-  await db.execute(
-    `INSERT INTO audit_log (Emp_id, Action, Table_name, Record_id, Old_value, New_value)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [empId, action, table, recordId,
-     oldValue ? JSON.stringify(oldValue) : null,
-     newValue ? JSON.stringify(newValue) : null]
-  );
-}
-module.exports = { writeAuditLog };
-```
-
-### ขั้น 3 — เสียบใน controller (หัวใจ: ก่อน UPDATE/DELETE ต้อง SELECT ค่าเก่าเก็บก่อน)
-ตัวอย่างใน `updateEmployee`:
-```js
-const [before] = await db.execute('SELECT * FROM employee WHERE Emp_ID = ?', [id]);
-// ...ทำ UPDATE ตามปกติ...
-await writeAuditLog({
-  empId: req.user.empId, action: 'UPDATE', table: 'employee',
-  recordId: id, oldValue: before[0], newValue: req.body,
-});
-```
-
-## ลำดับความสำคัญของ endpoint ที่ควร log
-1. `updateEmployee`, `deleteEmployee` — กระทบข้อมูลคน + เงินเดือนมากสุด (เริ่มที่นี่)
-2. `updateLeaveStatus` (อนุมัติลา) — การตัดสินใจของ HR
-3. `markPayrollPaid` — เกี่ยวกับเงิน
-4. `createEmployee` — รู้ว่าใครเพิ่มเข้ามา
-
-## ทำทีหลังได้ (ขั้นสูง)
-- Middleware ดักทุก POST/PUT/DELETE แล้ว log ให้อัตโนมัติ (แทนการเสียบทีละ controller)
-- API `GET /api/audit` (เฉพาะ Admin) + หน้า frontend แสดงตาราง log ย้อนหลัง
 
 ## Tech Stack
 - Nextjs 16

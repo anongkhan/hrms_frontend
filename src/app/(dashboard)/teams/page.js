@@ -4,6 +4,16 @@ import EmployeeList from "./_components/EmployeeList";
 import EmployeeForm from "./_components/EmployeeForm";
 import { apiRequest } from "@/lib/api";
 import { notifySuccess, notifyError, confirmDelete } from "@/lib/alert";
+import { getStoredSession } from "@/lib/auth";
+
+const ADMIN_ONLY_ID_PREFIXES = ["HR-", "ACC-", "ADM-"];
+
+function canViewEmployee(row, role) {
+  if (role === "Admin") return true;
+
+  const employeeId = String(row.Emp_ID || "").trim().toUpperCase();
+  return !ADMIN_ONLY_ID_PREFIXES.some((prefix) => employeeId.startsWith(prefix));
+}
 
 function mapEmployee(row) {
   return {
@@ -55,7 +65,12 @@ export default function TeamsPage() {
   const loadEmployees = useCallback(async () => {
     try {
       const rows = await apiRequest("/api/employees");
-      setEmployees((rows || []).map(mapEmployee));
+      const role = getStoredSession()?.user?.Role;
+      setEmployees(
+        (rows || [])
+          .filter((employee) => canViewEmployee(employee, role))
+          .map(mapEmployee)
+      );
       setError("");
     } catch (err) {
       setError(err.message);
@@ -132,12 +147,14 @@ export default function TeamsPage() {
   };
 
   const handleDelete = async (empId) => {
-    const result = await confirmDelete(`${empId} will be permanently removed.`);
+    const result = await confirmDelete(
+      `ລຶບພະນັກງານ ${empId} ຂໍ້ມູນທັງໝົດຈະບໍ່ສາມາດກູ້ຄືນໄດ້`
+    );
     if (!result.isConfirmed) return;
 
     try {
       await apiRequest(`/api/employees/${empId}`, { method: "DELETE" });
-      notifySuccess("Employee deleted");
+      notifySuccess("ລຶບພະນັກງານສຳເລັດ");
       await loadEmployees();
     } catch (err) {
       notifyError(err.message);

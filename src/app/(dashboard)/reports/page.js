@@ -1,45 +1,60 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Download, FileSpreadsheet, Search, Users, Wallet } from "lucide-react";
+import { CalendarDays, Download, FileSpreadsheet, Filter, Search, Users, Wallet, X } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 
 const reportTypes = [
-  { value: "payroll", label: "Monthly & Yearly Expense Report" },
-  { value: "attendance", label: "Employee Attendance, Leave & Absence" },
+  { value: "payroll", label: "ສະຫຼຸບຄ່າໃຊ້ຈ່າຍ" },
+  { value: "attendance", label: "ການເຂົ້າວຽກ ແລະ ການລາພັກ" },
 ];
 
 const periods = [
-  { value: "month", label: "Monthly" },
-  { value: "year", label: "Yearly" },
+  { value: "month", label: "ລາຍເດືອນ" },
+  { value: "year", label: "ລາຍປີ" },
 ];
 
 const monthOptions = [
-  { value: "2026-06", label: "June 2026" },
-  { value: "2026-05", label: "May 2026" },
-  { value: "2026-04", label: "April 2026" },
-  { value: "2026-03", label: "March 2026" },
-  { value: "2026-02", label: "February 2026" },
-  { value: "2026-01", label: "January 2026" },
-  { value: "2025-12", label: "December 2025" },
+  { value: "01", label: "ມັງກອນ" },
+  { value: "02", label: "ກຸມພາ" },
+  { value: "03", label: "ມີນາ" },
+  { value: "04", label: "ເມສາ" },
+  { value: "05", label: "ພຶດສະພາ" },
+  { value: "06", label: "ມິຖຸນາ" },
+  { value: "07", label: "ກໍລະກົດ" },
+  { value: "08", label: "ສິງຫາ" },
+  { value: "09", label: "ກັນຍາ" },
+  { value: "10", label: "ຕຸລາ" },
+  { value: "11", label: "ພະຈິກ" },
+  { value: "12", label: "ທັນວາ" },
 ];
 
-const yearOptions = ["2026", "2025"];
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+const yearOptions = Array.from({ length: 6 }, (_, index) => String(currentYear - index));
+const initialMonth = `${currentYear}-${currentMonth}`;
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString()} LAK`;
 const getPayrollTotal = (row) => Number(row.total ?? row.salary + row.allowance - row.deduction);
 const csvEscape = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
 
 function getMonthLabel(period) {
-  const option = monthOptions.find((month) => month.value === period);
-  return option?.label?.split(" ")[0] || period;
+  const month = String(period || "").split("-")[1];
+  return monthOptions.find((option) => option.value === month)?.label || period;
 }
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState("payroll");
   const [periodType, setPeriodType] = useState("month");
-  const [selectedMonth, setSelectedMonth] = useState("2026-06");
-  const [selectedYear, setSelectedYear] = useState("2026");
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
+  const [appliedFilters, setAppliedFilters] = useState({
+    reportType: "payroll",
+    periodType: "month",
+    period: initialMonth,
+    year: String(currentYear),
+  });
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [rows, setRows] = useState([]);
@@ -48,10 +63,10 @@ export default function ReportsPage() {
   useEffect(() => {
     async function loadReport() {
       try {
-        const query = periodType === "month"
-          ? `periodType=month&period=${selectedMonth}`
-          : `periodType=year&year=${selectedYear}`;
-        const data = await apiRequest(`/api/reports/${reportType}?${query}`);
+        const query = appliedFilters.periodType === "month"
+          ? `periodType=month&period=${appliedFilters.period}`
+          : `periodType=year&year=${appliedFilters.year}`;
+        const data = await apiRequest(`/api/reports/${appliedFilters.reportType}?${query}`);
         setRows(data || []);
         setError("");
       } catch (err) {
@@ -61,7 +76,36 @@ export default function ReportsPage() {
     }
 
     loadReport();
-  }, [periodType, reportType, selectedMonth, selectedYear]);
+  }, [appliedFilters]);
+
+  const activeReportType = appliedFilters.reportType;
+  const activePeriodType = appliedFilters.periodType;
+  const selectedMonthNumber = selectedMonth.split("-")[1];
+
+  const handleMonthChange = (month) => {
+    setSelectedMonth(`${selectedYear}-${month}`);
+  };
+
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+
+    const month = Number(year) === currentYear && Number(selectedMonthNumber) > Number(currentMonth)
+      ? currentMonth
+      : selectedMonthNumber;
+
+    setSelectedMonth(`${year}-${month}`);
+  };
+
+  const handleApplyFilters = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    setAppliedFilters({
+      reportType,
+      periodType,
+      period: selectedMonth,
+      year: selectedYear,
+    });
+  };
 
   const activeRows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -73,12 +117,12 @@ export default function ReportsPage() {
   }, [rows, searchTerm]);
 
   const summary = useMemo(() => {
-    if (reportType === "payroll") {
+    if (activeReportType === "payroll") {
       return {
         primaryLabel: "ລາຍຈ່າຍທັງໝົດ",
         primaryValue: formatCurrency(activeRows.reduce((sum, row) => sum + getPayrollTotal(row), 0)),
-        secondaryLabel: "ພະແນກ",
-        secondaryValue: activeRows.length,
+        secondaryLabel: "ພະນັກງານ",
+        secondaryValue: new Set(activeRows.map((row) => row.employees)).size,
       };
     }
 
@@ -88,21 +132,26 @@ export default function ReportsPage() {
       secondaryLabel: "ລາພັກ / ຂາດວຽກ",
       secondaryValue: `${activeRows.reduce((sum, row) => sum + Number(row.leaveDays || 0), 0)} / ${activeRows.reduce((sum, row) => sum + Number(row.absentDays || 0), 0)}`,
     };
-  }, [activeRows, reportType]);
+  }, [activeReportType, activeRows]);
 
   const handleSearch = (event) => {
     event.preventDefault();
-    setSearchTerm(searchInput);
+    setSearchTerm(searchInput.trim());
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchTerm("");
   };
 
   const handleExport = () => {
-    const columns = reportType === "payroll"
+    const columns = activeReportType === "payroll"
       ? ["ID", "Period", "Department", "Employees", "Salary", "Allowance", "Deduction", "Total"]
       : ["ID", "Employee ID", "Name", "Department", "Period", "Present Days", "Leave Days", "Absent Days", "Late Days"];
 
     const exportRows = activeRows.map((row) => (
-      reportType === "payroll"
-        ? [row.id, periodType === "month" ? row.period : row.year, row.department, row.employees, row.salary, row.allowance, row.deduction, getPayrollTotal(row)]
+      activeReportType === "payroll"
+        ? [row.id, activePeriodType === "month" ? row.period : row.year, row.department, row.employees, row.salary, row.allowance, row.deduction, getPayrollTotal(row)]
         : [row.id, row.empId, row.name, row.department, row.period, row.presentDays, row.leaveDays, row.absentDays, row.lateDays]
     ));
 
@@ -111,7 +160,7 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${reportType}-${periodType}-report.csv`;
+    link.download = `${activeReportType}-${activePeriodType}-report.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -129,7 +178,7 @@ export default function ReportsPage() {
           onClick={handleExport}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-100 transition-all hover:bg-emerald-700 sm:w-auto"
         >
-          <Download size={17} /> Export File
+          <Download size={17} /> Exports
         </button>
       </div>
 
@@ -142,7 +191,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-            {reportType === "payroll" ? <Wallet size={20} /> : <Users size={20} />}
+            {activeReportType === "payroll" ? <Wallet size={20} /> : <Users size={20} />}
           </div>
           <p className="text-xs font-bold uppercase text-slate-400">{summary.primaryLabel}</p>
           <p className="mt-1 text-xl font-black text-slate-800">{summary.primaryValue}</p>
@@ -164,8 +213,9 @@ export default function ReportsPage() {
       </div>
 
       <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.4fr_0.8fr_0.8fr_1.4fr]">
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.3fr_0.8fr_1.3fr_auto_1.4fr]">
           <select
+            aria-label="ປະເພດລາຍງານ"
             value={reportType}
             onChange={(event) => setReportType(event.target.value)}
             className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:ring-2 focus:ring-blue-600/20"
@@ -176,6 +226,7 @@ export default function ReportsPage() {
           </select>
 
           <select
+            aria-label="ຮູບແບບລາຍງານ"
             value={periodType}
             onChange={(event) => setPeriodType(event.target.value)}
             className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:ring-2 focus:ring-blue-600/20"
@@ -186,19 +237,42 @@ export default function ReportsPage() {
           </select>
 
           {periodType === "month" ? (
-            <select
-              value={selectedMonth}
-              onChange={(event) => setSelectedMonth(event.target.value)}
-              className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:ring-2 focus:ring-blue-600/20"
-            >
-              {monthOptions.map((month) => (
-                <option key={month.value} value={month.value}>{month.label}</option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                aria-label="ເລືອກເດືອນ"
+                value={selectedMonthNumber}
+                onChange={(event) => handleMonthChange(event.target.value)}
+                className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:ring-2 focus:ring-blue-600/20"
+              >
+                {monthOptions.map((month) => (
+                  <option
+                    key={month.value}
+                    value={month.value}
+                    disabled={
+                      Number(selectedYear) === currentYear &&
+                      Number(month.value) > Number(currentMonth)
+                    }
+                  >
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="ເລືອກປີ"
+                value={selectedYear}
+                onChange={(event) => handleYearChange(event.target.value)}
+                className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:ring-2 focus:ring-blue-600/20"
+              >
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
           ) : (
             <select
+              aria-label="ເລືອກປີ"
               value={selectedYear}
-              onChange={(event) => setSelectedYear(event.target.value)}
+              onChange={(event) => handleYearChange(event.target.value)}
               className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:ring-2 focus:ring-blue-600/20"
             >
               {yearOptions.map((year) => (
@@ -207,22 +281,43 @@ export default function ReportsPage() {
             </select>
           )}
 
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleApplyFilters}
+            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700"
+          >
+            <Filter size={16} /> ສະແດງລາຍງານ
+          </button>
+
+          <form
+            onSubmit={handleSearch}
+            className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1 shadow-sm transition-all focus-within:border-blue-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-600/10"
+          >
             <div className="relative min-w-0 flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={17} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                className="w-full rounded-xl border border-slate-100 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:ring-2 focus:ring-blue-600/20"
+                className="h-full w-full border-0 bg-transparent py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none placeholder:text-slate-300"
                 placeholder="ຄົ້ນຫາລາຍງານ..."
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="ລ້າງຄຳຄົ້ນຫາ"
+                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                >
+                  <X size={15} />
+                </button>
+              )}
             </div>
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700"
+              className="flex min-w-24 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/30 active:scale-[0.98]"
             >
-              <Search size={16} /> Search
+              <Search size={16} /> ຄົ້ນຫາ
             </button>
           </form>
         </div>
@@ -230,7 +325,7 @@ export default function ReportsPage() {
 
       <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          {reportType === "payroll" ? (
+          {activeReportType === "payroll" ? (
             <table className="w-full min-w-230 border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -248,7 +343,7 @@ export default function ReportsPage() {
                 {activeRows.map((row, index) => (
                   <tr key={`${row.id}-${index}`} className="transition-colors hover:bg-slate-50/50">
                     <td className="px-6 py-4 font-bold text-blue-600">{row.id}</td>
-                    <td className="px-6 py-4">{periodType === "month" ? getMonthLabel(row.period) : row.year}</td>
+                    <td className="px-6 py-4">{activePeriodType === "month" ? getMonthLabel(row.period) : row.year}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{row.department}</td>
                     <td className="px-6 py-4">{row.employees}</td>
                     <td className="px-6 py-4 font-mono">{formatCurrency(row.salary)}</td>
@@ -284,7 +379,7 @@ export default function ReportsPage() {
                     <td className="px-6 py-4 font-bold text-blue-600">{row.empId}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{row.name}</td>
                     <td className="px-6 py-4">{row.department}</td>
-                    <td className="px-6 py-4">{periodType === "month" ? row.period : row.year}</td>
+                    <td className="px-6 py-4">{activePeriodType === "month" ? row.period : row.year}</td>
                     <td className="px-6 py-4 font-bold text-emerald-600">{row.presentDays}</td>
                     <td className="px-6 py-4 font-bold text-amber-600">{row.leaveDays}</td>
                     <td className="px-6 py-4 font-bold text-rose-600">{row.absentDays}</td>

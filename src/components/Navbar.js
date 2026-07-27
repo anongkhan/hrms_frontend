@@ -41,7 +41,7 @@ export default function Navbar() {
   const displayRole = user?.Role || user?.role || "";
 
   return (
-    <header className="absolute top-0 right-0 left-0 z-20 h-20 border-b border-dash-border bg-white/90 px-10 backdrop-blur">
+    <header className="fixed top-0 right-0 left-56 z-20 h-20 border-b border-dash-border bg-white/90 px-10 backdrop-blur">
       <div className="flex h-full items-center justify-end gap-5">
         <div className="flex h-12 min-w-64 items-center justify-center gap-3 rounded-full border border-dash-border bg-dash-pill px-6 text-sm font-bold text-slate-700 shadow-sm">
           <CalendarDays size={17} className="text-emerald-500" />

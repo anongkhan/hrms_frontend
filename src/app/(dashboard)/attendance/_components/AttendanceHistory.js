@@ -1,8 +1,21 @@
 "use client";
 import { Calendar, UserRound } from "lucide-react";
 
+function formatOvertime(minutes) {
+  if (minutes === null || minutes === undefined) return "--";
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) return `${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h`;
+
+  return `${hours}h ${remainingMinutes}m`;
+}
+
 export default function AttendanceHistory({ history, role }) {
   const canViewEmployee = role === "Admin" || role === "HR";
+  const canViewOvertime = role === "Admin" || role === "HR";
 
   return (
     <div className="space-y-4">
@@ -19,6 +32,7 @@ export default function AttendanceHistory({ history, role }) {
                 {canViewEmployee && <th className="py-5 px-6">Employee</th>}
                 <th className="py-5 px-6">Check In Time</th>
                 <th className="py-5 px-6">Check Out Time</th>
+                {canViewOvertime && <th className="py-5 px-6">OT Hours</th>}
                 <th className="py-5 px-6">Status</th>
               </tr>
             </thead>
@@ -45,6 +59,17 @@ export default function AttendanceHistory({ history, role }) {
                   )}
                   <td className="py-4 px-6 font-mono text-slate-700">{row.checkIn || "--:--:--"}</td>
                   <td className="py-4 px-6 font-mono text-slate-700">{row.checkOut || "--:--:--"}</td>
+                  {canViewOvertime && (
+                    <td className="py-4 px-6">
+                      <span className={`inline-flex min-w-16 justify-center rounded-full px-3 py-1 text-xs font-bold ${
+                        row.overtimeMinutes > 0
+                          ? "bg-indigo-50 text-indigo-600"
+                          : "bg-slate-100 text-slate-500"
+                      }`}>
+                        {formatOvertime(row.overtimeMinutes)}
+                      </span>
+                    </td>
+                  )}
                   <td className="py-4 px-6">
                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${
                       row.status === "On Time" ? "bg-emerald-50 text-emerald-600" :

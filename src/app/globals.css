@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Saysettha OT Lao";
-  src: local("Saysettha OT");
-  font-style: normal;
-  font-weight: 400 900;
-  font-display: swap;
-  unicode-range: U+0E80-0EFF;
-}
-
 :root {
   --background: #f8fafc;
   --foreground: #1e293b;
@@ -21,7 +12,6 @@
   --dash-primary-hover: #1d4ed8;
   --dash-pill: #ffffff;
   --dash-muted: #64748b;
-  --font-saysettha: "Saysettha OT Lao";
 }
 
 @theme inline {
@@ -35,12 +25,12 @@
   --color-dash-primary-hover: var(--dash-primary-hover);
   --color-dash-pill: var(--dash-pill);
   --color-dash-muted: var(--dash-muted);
-  --font-sans: var(--font-saysettha), var(--font-noto-serif);
+  --font-sans: "Inter", "Noto Sans Lao", Arial, Helvetica, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-saysettha), var(--font-noto-serif), Arial, Helvetica, sans-serif;
+  font-family: "Inter", "Noto Sans Lao", Arial, Helvetica, sans-serif;
 }

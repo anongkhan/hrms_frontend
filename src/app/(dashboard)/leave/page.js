@@ -48,7 +48,7 @@ export default function LeavePage() {
         apiRequest("/api/leave"),
       ]);
       setLeaveStats(stats || fallbackStats);
-      setHistory((leaves || []).map(mapLeave));
+      setHistory((leaves || []).filter((row) => row.Status !== "Cancelled").map(mapLeave));
       setError("");
     } catch (err) {
       setError(err.message);
@@ -98,14 +98,11 @@ export default function LeavePage() {
 
   const handleCancelLeave = async (leaveId) => {
     try {
-      await apiRequest("/api/leave/cancel", {
-        method: "PUT",
-        body: JSON.stringify({
-          Leave_id: leaveId,
-        }),
+      await apiRequest(`/api/leave/${leaveId}`, {
+        method: "DELETE",
       });
-      notifySuccess("Leave request cancelled");
-      await loadLeaveData();
+      setHistory((currentHistory) => currentHistory.filter((leave) => leave.id !== leaveId));
+      notifySuccess("Leave request deleted");
     } catch (err) {
       notifyError(err.message);
       setError(err.message);

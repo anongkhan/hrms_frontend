@@ -6,10 +6,42 @@ import { apiRequest } from "@/lib/api";
 import { getStoredSession } from "@/lib/auth";
 import { notifySuccess, notifyError } from "@/lib/alert";
 
+function getOvertimeMinutes(row, checkOut) {
+  const overtimeValue =
+    row.OT_Hours ??
+    row.otHours ??
+    row.Overtime_Hours ??
+    row.overtimeHours ??
+    row.OT_minutes ??
+    row.otMinutes;
+
+  if (overtimeValue !== undefined && overtimeValue !== null && overtimeValue !== "") {
+    const value = Number(overtimeValue);
+
+    if (Number.isFinite(value)) {
+      const isMinutes = row.OT_minutes !== undefined || row.otMinutes !== undefined;
+      return Math.max(0, Math.round(isMinutes ? value : value * 60));
+    }
+  }
+
+  if (!checkOut) return null;
+
+  const workDayEnd = new Date(checkOut);
+  workDayEnd.setHours(17, 0, 0, 0);
+
+  return Math.max(0, Math.floor((checkOut.getTime() - workDayEnd.getTime()) / 60000));
+}
+
 function mapAttendance(row) {
   const checkIn = row.Check_in ? new Date(row.Check_in) : null;
   const checkOut = row.Check_out ? new Date(row.Check_out) : null;
-  const employeeId = row.Emp_ID || row.empId || row.employeeId || row.User_ID || row.User_id;
+  const employeeId =
+    row.Emp_ID ||
+    row.Emp_id ||
+    row.empId ||
+    row.employeeId ||
+    row.User_ID ||
+    row.User_id;
   const employeeName = row.Full_name || row.fullName || row.employeeName || row.Name || row.name;
 
   return {
@@ -18,6 +50,7 @@ function mapAttendance(row) {
     employeeName,
     checkIn: checkIn ? checkIn.toLocaleTimeString("en-US", { hour12: false }) : null,
     checkOut: checkOut ? checkOut.toLocaleTimeString("en-US", { hour12: false }) : null,
+    overtimeMinutes: getOvertimeMinutes(row, checkOut),
     status: checkIn && (checkIn.getHours() > 8 || (checkIn.getHours() === 8 && checkIn.getMinutes() > 0)) ? "Late" : "On Time",
   };
 }

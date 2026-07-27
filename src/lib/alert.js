@@ -43,9 +43,9 @@ export function notifyError(message) {
 export function confirmDelete(text = "This action cannot be undone.") {
   return show({
     variant: "confirm",
-    title: "Are you sure?",
+    title: "ຢືນຢັນການລຶບ",
     text,
-    confirmText: "delete",
-    cancelText: "Cancel",
+    confirmText: "ລຶບ",
+    cancelText: "ຍົກເລີກ",
   });
 }

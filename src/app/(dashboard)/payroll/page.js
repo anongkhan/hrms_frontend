@@ -5,20 +5,9 @@ import PayrollTable from "./_components/PayrollTable";
 import { apiRequest } from "@/lib/api";
 import { notifySuccess, notifyError } from "@/lib/alert";
 
-function parseMonth(value) {
-  const parsed = new Date(`${value} 1`);
-  if (Number.isNaN(parsed.getTime())) {
-    const now = new Date();
-    return {
-      month: String(now.getMonth() + 1),
-      year: String(now.getFullYear()),
-    };
-  }
-
-  return {
-    month: String(parsed.getMonth() + 1),
-    year: String(parsed.getFullYear()),
-  };
+function getCurrentPayrollPeriod() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function mapPayroll(row) {
@@ -39,17 +28,22 @@ function mapPayroll(row) {
   };
 }
 
+function isEmployeePayroll(row) {
+  const employeeId = String(row.Emp_ID || row.Emp_id || "").trim().toUpperCase();
+  return employeeId.startsWith("EMP-");
+}
+
 export default function PayrollPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("May 2026");
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentPayrollPeriod);
   const [payrollData, setPayrollData] = useState([]);
   const [error, setError] = useState("");
 
   const loadPayroll = useCallback(async () => {
     try {
-      const { month, year } = parseMonth(selectedMonth);
+      const [year, month] = selectedMonth.split("-");
       const rows = await apiRequest(`/api/payroll?month=${month}&year=${year}`);
-      setPayrollData((rows || []).map(mapPayroll));
+      setPayrollData((rows || []).filter(isEmployeePayroll).map(mapPayroll));
       setError("");
     } catch (err) {
       setError(err.message);

@@ -3,6 +3,16 @@ import { useEffect, useState } from "react";
 import DashboardStats from "./_components/DashboardStats";
 import OverviewTable from "./_components/OverviewTable";
 import { apiRequest } from "@/lib/api";
+import { getStoredSession } from "@/lib/auth";
+
+const ADMIN_ONLY_ID_PREFIXES = ["HR-", "ACC-", "ADM-"];
+
+function canViewEmployee(row, role) {
+  if (role === "Admin") return true;
+
+  const employeeId = String(row.Emp_ID || "").trim().toUpperCase();
+  return !ADMIN_ONLY_ID_PREFIXES.some((prefix) => employeeId.startsWith(prefix));
+}
 
 function mapEmployee(row) {
   return {
@@ -28,11 +38,18 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         const data = await apiRequest("/api/dashboard/summary");
+        const role = getStoredSession()?.user?.Role;
+        const visibleEmployees = (data.employees || []).filter((employee) =>
+          canViewEmployee(employee, role)
+        );
+
         setSummary({
-          totalEmployees: data.totalEmployees || 0,
+          totalEmployees: role === "Admin"
+            ? data.totalEmployees || visibleEmployees.length
+            : visibleEmployees.length,
           totalPresent: data.totalPresent || 0,
           totalOnLeave: data.totalOnLeave || 0,
-          employees: (data.employees || []).map(mapEmployee),
+          employees: visibleEmployees.map(mapEmployee),
         });
       } catch (err) {
         setError(err.message);

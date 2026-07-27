@@ -40,10 +40,10 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <NotificationModal />
       <Sidebar />
-      <div className="flex-1 ml-56 relative">
+      <div className="ml-56 h-screen min-w-0 flex-1 overflow-y-auto">
         <Navbar />
         <main className="p-10 pt-28">
           {children}
