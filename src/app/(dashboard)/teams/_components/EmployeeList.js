@@ -42,7 +42,7 @@ export default function EmployeeList({ employees, onAddNew, onEdit, onDelete }) 
       {/* Top Section */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Teams Management</h1>
+          <h1 className="text-2xl font-bold text-slate-800">Employee Management</h1>
           {/* <p className="text-sm text-slate-400 mt-1">ຈັດການຂໍ້ມູນພະນັກງານ, ເພີ່ມ, ລຶບ ແລະ ແກ້ໄຂຂໍ້ມູນ</p> */}
         </div>
         <button 
