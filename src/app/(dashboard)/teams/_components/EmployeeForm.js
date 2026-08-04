@@ -147,14 +147,9 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Department</label>
-              <select value={formData.department} onChange={(e) => update("department", e.target.value)}
-                className="w-full p-3.5 bg-slate-50/80 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-600/20 outline-none text-sm transition-all text-slate-600">
-                <option value="Human Resource">Human Resource</option>
-                <option value="Accounting">Accounting</option>
-                <option value="IT">IT</option>
-                {/* <option value="IT Support">IT Support</option> */}
-                <option value="Marketing">Marketing</option>
-              </select>
+              <input type="text" value={formData.department} onChange={(e) => update("department", e.target.value)}
+                className="w-full p-3.5 bg-slate-50/80 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-600/20 outline-none text-sm transition-all"
+                placeholder="Enter department" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Position</label>

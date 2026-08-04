@@ -48,7 +48,7 @@ const emptyForm = {
   address: "",
   email: "",
   password: "",
-  department: "Human Resource",
+  department: "",
   position: "",
   salary: "",
   bankAccountNumber: "",
