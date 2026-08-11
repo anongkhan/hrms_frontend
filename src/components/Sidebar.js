@@ -15,7 +15,7 @@ import { clearSession, getStoredSession, ROLE_ROUTES } from "@/lib/auth";
 
 const menu = [
   { name: "ໜ້າຫຼັກ", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
-  { name: "ພະນັກງານ", icon: <Users size={20} />, path: "/teams" },
+  { name: "ພະນັກງານ", icon: <Users size={20} />, path: "/employee" },
   { name: "ການມາວຽກ", icon: <Clock size={20} />, path: "/attendance" },
   { name: "ການລາພັກ", icon: <CreditCard size={20} />, path: "/leave" },
   { name: "ເງິນເດືອນ", icon: <Wallet size={20} />, path: "/payroll" },

@@ -92,7 +92,7 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Full Name</label>
               <input type="text" value={formData.name} onChange={(e) => update("name", e.target.value)}
-                className={inputCls("name")} placeholder="Enter full name" />
+                className={inputCls("name")} placeholder="Enter your full name" />
               {renderError("name")}
             </div>
             <div>
@@ -106,14 +106,14 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Telephone</label>
               <input type="text" value={formData.tel} onChange={(e) => update("tel", e.target.value)}
-                className={inputCls("tel")} placeholder="Enter phone number" inputMode="numeric" />
+                className={inputCls("tel")} placeholder="Enter your phone number" inputMode="numeric" />
               {renderError("tel")}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Address</label>
               <input type="text" value={formData.address} onChange={(e) => update("address", e.target.value)}
                 className="w-full p-3.5 bg-slate-50/80 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-600/20 outline-none text-sm transition-all"
-                placeholder="Enter address" />
+                placeholder="Enter your address" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Email Address</label>
@@ -130,7 +130,7 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
                 onChange={(e) => update("password", e.target.value)}
                 autoComplete="new-password"
                 className={inputCls("password")}
-                placeholder={isEdit ? "Leave blank to keep current password" : "Enter password"}
+                placeholder={isEdit ? "Leave blank to keep current password" : "Enter your password"}
               />
               {renderError("password")}
             </div>
@@ -149,12 +149,12 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Department</label>
               <input type="text" value={formData.department} onChange={(e) => update("department", e.target.value)}
                 className="w-full p-3.5 bg-slate-50/80 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-600/20 outline-none text-sm transition-all"
-                placeholder="Enter department" />
+                placeholder="Enter your department" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Position</label>
               <input type="text" value={formData.position} onChange={(e) => update("position", e.target.value)}
-                className={inputCls("position")} placeholder="HR Manager" />
+                className={inputCls("position")} placeholder="Enter your position" />
               {renderError("position")}
             </div>
             <div>
@@ -166,7 +166,7 @@ export default function EmployeeForm({ mode = "create", formData, setFormData, o
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">Bank Account Number</label>
               <input type="text" value={formData.bankAccountNumber} onChange={(e) => update("bankAccountNumber", e.target.value)}
-                className={inputCls("bankAccountNumber")} placeholder="Enter account number" inputMode="numeric" />
+                className={inputCls("bankAccountNumber")} placeholder="Enter your bank account number" inputMode="numeric" />
               {renderError("bankAccountNumber")}
             </div>
             <div>

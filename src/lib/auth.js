@@ -1,8 +1,8 @@
 export const ROLE_ROUTES = {
-  HR: ["/dashboard", "/teams", "/attendance", "/leave"],
+  HR: ["/dashboard", "/employee", "/attendance", "/leave"],
   Employee: ["/dashboard", "/attendance", "/leave"],
   Accountant: ["/payroll", "/reports"],
-  Admin: ["/dashboard", "/teams", "/attendance", "/leave", "/payroll", "/reports"],
+  Admin: ["/dashboard", "/employee", "/attendance", "/leave", "/payroll", "/reports"],
 };
 
 export function normalizeRole(role) {

@@ -55,7 +55,7 @@ const emptyForm = {
   role: "Employee",
 };
 
-export default function TeamsPage() {
+export default function EmployeePage() {
   const [viewMode, setViewMode] = useState("list");
   const [formMode, setFormMode] = useState("create");
   const [employees, setEmployees] = useState([]);
