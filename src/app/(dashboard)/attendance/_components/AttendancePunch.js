@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { LogIn, LogOut, Clock, CheckCircle } from "lucide-react";
 
 // ຕ້ອງກົງກັບ CHECK_IN_WINDOW / CHECK_OUT_WINDOW ໃນ attendanceController.js ຝັ່ງ backend
-const CHECK_IN_WINDOW = { start: "08:00:00" };
-const CHECK_OUT_WINDOW = { start: "17:00:00" };
+const CHECK_IN_WINDOW = { start: "08:00:00", end: "10:00:00" };
+const CHECK_OUT_WINDOW = { start: "17:00:00", end: "19:00:00" };
 
 function isWithinWindow(time, window) {
   return time >= window.start && time <= window.end;
@@ -55,7 +55,7 @@ export default function AttendancePunch({ onCheckIn, onCheckOut, todayStatus }) 
           {/* <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Shift Start</span> */}
           <h3 className="text-lg font-bold text-slate-800">ເວລາເຂົ້າວຽກ</h3>
           <p className="text-xs text-slate-400 mt-1">
-            ເວລາມາດຕະຖານ: {CHECK_IN_WINDOW.start.slice(0, 5)} AM
+            ເວລາມາດຕະຖານ: {CHECK_IN_WINDOW.start.slice(0, 5)} AM - {CHECK_IN_WINDOW.end.slice(0, 5)} AM
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default function AttendancePunch({ onCheckIn, onCheckOut, todayStatus }) 
           {/* <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Shift End</span> */}
           <h3 className="text-lg font-bold text-slate-800">ເວລາອອກວຽກ</h3>
           <p className="text-xs text-slate-400 mt-1">
-            ເວລາມາດຕະຖານ: {CHECK_OUT_WINDOW.start.slice(0, 5)} AM
+            ເວລາມາດຕະຖານ: {CHECK_OUT_WINDOW.start.slice(0, 5)} AM - {CHECK_OUT_WINDOW.end.slice(0, 5)} AM
           </p>
         </div>
 
